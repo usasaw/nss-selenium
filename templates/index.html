@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <title>Automate Test - POS NSS</title>
+    <link href='https://fonts.googleapis.com/css?family=Sarabun' rel='stylesheet'>
+      <style>
+        body {
+          font-family: 'Sarabun';
+          font-size: 16px;
+          background-color: #dde7dd;
+          padding: 20px;
+        }
+
+        #log_automate_test, #output, #log{
+          font-family: 'Sarabun';
+          font-size: 12px;
+        }
+    
+        .grid {         
+          display: grid;
+          flex-wrap: wrap;
+          justify-content: center;
+          grid-template-columns: repeat(6, minmax(150px, 1fr));
+          gap: 20px;
+          padding: 8px;
+          padding-left: 150px; 
+          padding-right: 150px; 
+        }
+        
+        .card {
+          background: white;
+          border-radius: 10px;
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+          width: 150px;
+          height: 100px;
+          text-align: center;
+          padding: 15px;
+        }
+    
+        .card img {
+          max-width: 80px;
+          height: auto;
+          margin-bottom: 10px;
+        }
+    
+        .card p {
+          font-size: 14px;
+          margin: 0;
+        }
+
+        a {
+          text-decoration: none !important;
+          color: black;
+        }
+      </style>
+  </head>
+  <body>
+    <div class="grid" id="cards-container"></div>
+
+    <h3>⚙️ Log Automate Test:</h3>
+    <div id="log_automate_test">
+      <pre id="output"></pre>
+      <pre id="log"></pre>
+    </div>
+
+    <h3>📸 Screenshots:</h3>
+    <div id="screenshots"></div>
+
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        const output = document.getElementById("output");
+
+        function startTest(CS_CODE) {
+          output.textContent = "⏳ กำลังรัน Automate Test...\n";
+          document.getElementById('screenshots').innerHTML = ""
+          socket.emit("start_test", CS_CODE);
+        }
+
+        socket.on("test_result", (msg) => {
+          output.textContent += msg + "\n";
+        });
+
+        socket.on('screenshot', function(data) {
+          const img = document.createElement('img');
+          img.src = 'data:image/png;base64,' + data.base64;
+          img.style = "max-width: 400px; margin: 10px;";
+          const label = document.createElement('p');
+          label.textContent = data.filename;
+          document.getElementById('screenshots').appendChild(label);
+          document.getElementById('screenshots').appendChild(img);
+        });
+
+        fetch("/api/cards").then(res => res.json())
+        .then(data => {
+          const container = document.getElementById("cards-container");
+          data.forEach(card => {
+            const a = document.createElement("a");
+            a.href = "javascript:void(0)";
+            a.addEventListener("click", () => startTest(card.code));
+
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `
+              <img src="${card.image}" alt="${card.alt}" />
+              <p>${card.title}</p>
+            `;
+            a.appendChild(div);
+            container.appendChild(a);
+          });
+        });
+    </script>
+  </body>
+</html>

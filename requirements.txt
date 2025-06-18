@@ -1,0 +1,13 @@
+```txt
+# Core
+Flask
+flask-socketio
+eventlet
+
+# Testing
+pytest
+pytest-html
+
+# Web automation
+selenium
+webdriver-manager
